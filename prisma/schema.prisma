@@ -93,6 +93,15 @@ model MaterialStock {
   tulane Float @default(0)
 }
 
+model MaterialInboundRecord {
+  id         String @id
+  grade      String
+  amount     Float
+  date       String
+  timestamp  BigInt
+  recordedBy String
+}
+
 model SparePart {
   id          String @id
   name        String

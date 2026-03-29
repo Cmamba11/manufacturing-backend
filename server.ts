@@ -1045,6 +1045,35 @@ app.patch('/api/material-stock', asyncHandler(async (req, res) => {
   res.json(stock);
 }));
 
+app.get('/api/material-inbound', async (req, res) => {
+  try {
+    const records = await prisma.materialInboundRecord.findMany({
+      orderBy: { timestamp: 'desc' }
+    });
+    res.json(records);
+  } catch (error) {
+    console.error('Error fetching material inbound records:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/material-inbound', async (req, res) => {
+  try {
+    const data = req.body;
+    const record = await prisma.materialInboundRecord.create({
+      data: {
+        ...data,
+        timestamp: BigInt(data.timestamp)
+      }
+    });
+    res.json(record);
+  } catch (error) {
+    console.error('Error creating material inbound record:', error);
+    res.status(500).json({ error: 'Failed to create record' });
+  }
+});
+
+
 app.get('/api/spare-parts', asyncHandler(async (req, res) => {
   const authReq = req as AuthenticatedRequest;
   assertPermission(authReq, 'view_all');
