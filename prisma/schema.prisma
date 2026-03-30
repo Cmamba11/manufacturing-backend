@@ -101,15 +101,20 @@ model MaterialInboundRecord {
   timestamp  BigInt
   recordedBy String
 }
-
 model SparePart {
-  id          String @id
+  id          String   @id @default(uuid())
   name        String
-  quantity    Float
-  value       Float
-  machineType String
+  partNumber  String   @unique
+  category    String
+  quantity    Int
+  unit        String
+  minStock    Int
+  location    String
+  date        String?  // Added
+  timestamp   BigInt?  // Added
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
-
 model SparePartIssuance {
   id        String @id
   partId    String

@@ -19,6 +19,19 @@ async function main() {
       active: true,
     }
   });
+await prisma.sparePart.create({
+  data: {
+    name: 'Conveyor Belt XL',
+    partNumber: 'CB-9000',
+    category: 'Mechanical',
+    quantity: 5,
+    unit: 'pcs',
+    minStock: 2,
+    location: 'Shelf A1',
+    date: '2024-03-20',
+    timestamp: BigInt(Date.now()),
+  },
+});
 
   console.log('Seeding complete.');
 }

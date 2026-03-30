@@ -1084,9 +1084,34 @@ app.get('/api/spare-parts', asyncHandler(async (req, res) => {
 app.post('/api/spare-parts', asyncHandler(async (req, res) => {
   const authReq = req as AuthenticatedRequest;
   assertPermission(authReq, 'manage_materials');
-  const data = parseSparePartCreateData(requireObjectBody(req.body));
-  const part = await prisma.sparePart.create({ data });
-  res.status(201).json(part);
+
+  const {
+    name,
+    partNumber,
+    category,
+    quantity,
+    unit,
+    minStock,
+    location,
+    date,
+    timestamp
+  } = req.body;
+
+  const sparePart = await prisma.sparePart.create({
+    data: {
+      name,
+      partNumber,
+      category,
+      quantity: parseInt(quantity),
+      unit,
+      minStock: parseInt(minStock),
+      location,
+      date,
+      timestamp: timestamp ? BigInt(timestamp) : null,
+    },
+  });
+
+  res.status(201).json(sparePart);
 }));
 
 app.patch('/api/spare-parts/:id', asyncHandler(async (req, res) => {
