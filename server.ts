@@ -1266,6 +1266,44 @@ app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
+// Add this before your startServer() function
+app.delete('/api/issuing-records/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const record = await prisma.issuingRecord.findUnique({ where: { id } });
+    if (!record) return res.status(404).json({ error: 'Record not found' });
+
+    // REVERSAL LOGIC: Add bags back to stock
+    if (record.materialBags) {
+      const bags = JSON.parse(record.materialBags);
+      await prisma.materialStock.update({
+        where: { id: 'master' },
+        data: {
+          HD: { increment: bags.HD || 0 },
+          LLD: { increment: bags.LLD || 0 },
+          EXCEED: { increment: bags.EXCEED || 0 },
+          IPA: { increment: bags.IPA || 0 },
+          TULANE: { increment: bags.TULANE || 0 }
+        }
+      });
+    }
+
+    await prisma.issuingRecord.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete' });
+  }
+});
+
+app.delete('/api/production-records/:id', async (req, res) => {
+  try {
+    await prisma.productionRecord.delete({ where: { id: req.params.id } });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete' });
+  }
+});
+
 async function startServer() {
   if (TOKEN_SECRET === 'change-me-in-production') {
     console.warn('AUTH_TOKEN_SECRET is using the development fallback. Set AUTH_TOKEN_SECRET in production.');
