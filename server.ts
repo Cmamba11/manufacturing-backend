@@ -1176,7 +1176,7 @@ app.post('/api/spare-issuances', asyncHandler(async (req, res) => {
 }));
 
 // Seed initial products and users if empty
-async function seed() {
+async function seed() 
   const productCount = await prisma.product.count();
   if (productCount === 0) {
     await prisma.product.createMany({
@@ -1206,29 +1206,61 @@ async function seed() {
     console.log('Seeded initial products');
   }
 
-  const userCount = await prisma.user.count();
-  if (userCount === 0) {
-    const defaultUsers = [
-      { username: 'admin', name: 'System Administrator', role: 'Administrator', password: process.env.SEED_ADMIN_PASSWORD ?? 'admin123' },
-      { username: 'production', name: 'Production Supervisor', role: 'Production Supervisor', password: process.env.SEED_PRODUCTION_PASSWORD ?? 'production123' },
-      { username: 'warehouse', name: 'Warehouse Officer', role: 'Warehouse Officer', password: process.env.SEED_WAREHOUSE_PASSWORD ?? 'warehouse123' },
-      { username: 'logistics', name: 'Logistics Officer', role: 'Logistics Officer', password: process.env.SEED_LOGISTICS_PASSWORD ?? 'logistics123' },
-      { username: 'management', name: 'Management', role: 'Management', password: process.env.SEED_MANAGEMENT_PASSWORD ?? 'management123' },
-    ];
+  // RESET USERS ALWAYS (fix login issues after DB reset)
+await prisma.user.deleteMany();
 
-    await prisma.user.createMany({
-      data: defaultUsers.map((user) => ({
-        username: user.username,
-        name: user.name,
-        role: user.role,
-        passwordHash: hashPassword(user.password),
-        active: true,
-      })),
-    });
+await prisma.user.create({
+  data: {
+    username: 'admin',
+    name: 'System Administrator',
+    role: 'Administrator',
+    passwordHash: hashPassword('admin123'),
+    active: true,
+  },
+});
 
-    console.log('Seeded default users (admin, production, warehouse, logistics, management)');
-  }
-}
+await prisma.user.create({
+  data: {
+    username: 'production',
+    name: 'Production Supervisor',
+    role: 'Production Supervisor',
+    passwordHash: hashPassword('production123'),
+    active: true,
+  },
+});
+
+await prisma.user.create({
+  data: {
+    username: 'warehouse',
+    name: 'Warehouse Officer',
+    role: 'Warehouse Officer',
+    passwordHash: hashPassword('warehouse123'),
+    active: true,
+  },
+});
+
+await prisma.user.create({
+  data: {
+    username: 'logistics',
+    name: 'Logistics Officer',
+    role: 'Logistics Officer',
+    passwordHash: hashPassword('logistics123'),
+    active: true,
+  },
+});
+
+await prisma.user.create({
+  data: {
+    username: 'management',
+    name: 'Management',
+    role: 'Management',
+    passwordHash: hashPassword('management123'),
+    active: true,
+  },
+});
+
+console.log('Users reset successfully');
+
 
 app.use('/api', (_req, res) => {
   res.status(404).json({ error: 'API route not found' });
