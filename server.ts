@@ -74,14 +74,6 @@ const TRANSACTION_TYPES = new Set([
 app.use(cors());
 app.use(express.json());
 
-app.use('/api', (_req, res) => {
-  res.status(404).json({ error: 'API route not found' });
-});
-
-function isPrismaKnownError(error: unknown): error is { code: string; meta?: unknown } {
-  return isObject(error) && typeof error.code === 'string';
-}
-
 const MATERIAL_STOCK_FIELDS = ['hd', 'lld', 'exceed', 'ipa', 'tulane'] as const;
 type MaterialStockField = (typeof MATERIAL_STOCK_FIELDS)[number];
 
@@ -1192,6 +1184,15 @@ app.delete('/api/production-records/:id', async (req, res) => {
     res.status(500).json({ error: 'Failed to delete' });
   }
 });
+
+
+app.use('/api', (_req, res) => {
+  res.status(404).json({ error: 'API route not found' });
+});
+
+function isPrismaKnownError(error: unknown): error is { code: string; meta?: unknown } {
+  return isObject(error) && typeof error.code === 'string';
+}
 
   const issuance = await prisma.$transaction(async (tx: any) => {
     const part = await tx.sparePart.findUnique({ where: { id: partId } });
