@@ -74,6 +74,14 @@ const TRANSACTION_TYPES = new Set([
 app.use(cors());
 app.use(express.json());
 
+app.use('/api', (_req, res) => {
+  res.status(404).json({ error: 'API route not found' });
+});
+
+function isPrismaKnownError(error: unknown): error is { code: string; meta?: unknown } {
+  return isObject(error) && typeof error.code === 'string';
+}
+
 const MATERIAL_STOCK_FIELDS = ['hd', 'lld', 'exceed', 'ipa', 'tulane'] as const;
 type MaterialStockField = (typeof MATERIAL_STOCK_FIELDS)[number];
 
@@ -1145,6 +1153,46 @@ app.post('/api/spare-issuances', asyncHandler(async (req, res) => {
     throw badRequest('partId is required.');
   }
 
+  // Add this before your startServer() function
+ app.delete('/api/issuing-records/:id', asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const record = await prisma.issuingRecord.findUnique({ where: { id } });
+
+  if (!record) {
+    return res.status(404).json({ error: 'Record not found' });
+  }
+
+  // safe reversal
+  if (record.materialBags) {
+    const bags = JSON.parse(record.materialBags);
+
+    await prisma.materialStock.update({
+      where: { id: 'master' },
+      data: {
+        hd: { increment: bags.HD || 0 },
+        lld: { increment: bags.LLD || 0 },
+        exceed: { increment: bags.EXCEED || 0 },
+        ipa: { increment: bags.IPA || 0 },
+        tulane: { increment: bags.TULANE || 0 }
+      }
+    });
+  }
+
+  await prisma.issuingRecord.delete({ where: { id } });
+
+  return res.json({ success: true }); // ALWAYS return JSON
+ }));
+
+app.delete('/api/production-records/:id', async (req, res) => {
+  try {
+    await prisma.productionRecord.delete({ where: { id: req.params.id } });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete' });
+  }
+});
+
   const issuance = await prisma.$transaction(async (tx: any) => {
     const part = await tx.sparePart.findUnique({ where: { id: partId } });
     if (!part) {
@@ -1267,15 +1315,6 @@ async function seed() {
   console.log('Users reset successfully');
 }
 
-
-app.use('/api', (_req, res) => {
-  res.status(404).json({ error: 'API route not found' });
-});
-
-function isPrismaKnownError(error: unknown): error is { code: string; meta?: unknown } {
-  return isObject(error) && typeof error.code === 'string';
-}
-
 app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
   if (isObject(error) && typeof error.status === 'number') {
     const message = typeof error.message === 'string' ? error.message : 'Bad request';
@@ -1302,46 +1341,6 @@ app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
 
   console.error('Unhandled API error:', error);
   res.status(500).json({ error: 'Internal server error' });
-});
-
-// Add this before your startServer() function
- app.delete('/api/issuing-records/:id', asyncHandler(async (req, res) => {
-  const { id } = req.params;
-
-  const record = await prisma.issuingRecord.findUnique({ where: { id } });
-
-  if (!record) {
-    return res.status(404).json({ error: 'Record not found' });
-  }
-
-  // safe reversal
-  if (record.materialBags) {
-    const bags = JSON.parse(record.materialBags);
-
-    await prisma.materialStock.update({
-      where: { id: 'master' },
-      data: {
-        hd: { increment: bags.HD || 0 },
-        lld: { increment: bags.LLD || 0 },
-        exceed: { increment: bags.EXCEED || 0 },
-        ipa: { increment: bags.IPA || 0 },
-        tulane: { increment: bags.TULANE || 0 }
-      }
-    });
-  }
-
-  await prisma.issuingRecord.delete({ where: { id } });
-
-  return res.json({ success: true }); // ALWAYS return JSON
- }));
-
-app.delete('/api/production-records/:id', async (req, res) => {
-  try {
-    await prisma.productionRecord.delete({ where: { id: req.params.id } });
-    res.json({ success: true });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to delete' });
-  }
 });
 
 async function startServer() {
