@@ -472,7 +472,6 @@ function parseIssuingRecordCreateData(
   materialBags: Record<string, number> | null,
 ) {
   return {
-    id: parseString(body.id, 'id'),
     date: parseString(body.date, 'date'),
     shift: parseString(body.shift, 'shift'),
     machineType: parseString(body.machineType, 'machineType'),
@@ -484,7 +483,6 @@ function parseIssuingRecordCreateData(
     timestamp: parseTimestamp(body.timestamp),
   };
 }
-
 function parseProductionRecordCreateData(body: JsonObject) {
   return {
     id: parseString(body.id, 'id'),
