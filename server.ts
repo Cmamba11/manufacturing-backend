@@ -1305,33 +1305,35 @@ app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
 });
 
 // Add this before your startServer() function
-app.delete('/api/issuing-records/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const record = await prisma.issuingRecord.findUnique({ where: { id } });
-    if (!record) return res.status(404).json({ error: 'Record not found' });
+ app.delete('/api/issuing-records/:id', asyncHandler(async (req, res) => {
+  const { id } = req.params;
 
-    // REVERSAL LOGIC: Add bags back to stock
-    if (record.materialBags) {
-      const bags = JSON.parse(record.materialBags);
-      await prisma.materialStock.update({
-        where: { id: 'master' },
-        data: {
-          HD: { increment: bags.HD || 0 },
-          LLD: { increment: bags.LLD || 0 },
-          EXCEED: { increment: bags.EXCEED || 0 },
-          IPA: { increment: bags.IPA || 0 },
-          TULANE: { increment: bags.TULANE || 0 }
-        }
-      });
-    }
+  const record = await prisma.issuingRecord.findUnique({ where: { id } });
 
-    await prisma.issuingRecord.delete({ where: { id } });
-    res.json({ success: true });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to delete' });
+  if (!record) {
+    return res.status(404).json({ error: 'Record not found' });
   }
-});
+
+  // safe reversal
+  if (record.materialBags) {
+    const bags = JSON.parse(record.materialBags);
+
+    await prisma.materialStock.update({
+      where: { id: 'master' },
+      data: {
+        hd: { increment: bags.HD || 0 },
+        lld: { increment: bags.LLD || 0 },
+        exceed: { increment: bags.EXCEED || 0 },
+        ipa: { increment: bags.IPA || 0 },
+        tulane: { increment: bags.TULANE || 0 }
+      }
+    });
+  }
+
+  await prisma.issuingRecord.delete({ where: { id } });
+
+  return res.json({ success: true }); // ALWAYS return JSON
+ }));
 
 app.delete('/api/production-records/:id', async (req, res) => {
   try {
