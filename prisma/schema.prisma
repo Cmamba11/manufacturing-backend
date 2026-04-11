@@ -60,7 +60,7 @@ model Transaction {
 }
 
 model IssuingRecord {
-  id             String   @id
+  id String @id @default(cuid())
   date           String
   shift          String
   machineType    String
