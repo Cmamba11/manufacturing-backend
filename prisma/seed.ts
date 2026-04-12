@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { UserRole } from '@prisma/client'; // or your types file
 
 const prisma = new PrismaClient();
 
@@ -15,23 +16,11 @@ async function main() {
       name: 'System Administrator',
       // Providing both to satisfy the schema
       passwordHash: hashedPassword, // This is the field Prisma is asking for
-      role: 'Administrator',
+      role: UserRole.ADMIN,
       active: true,
     }
   });
-await prisma.sparePart.create({
-  data: {
-    name: 'Conveyor Belt XL',
-    partNumber: 'CB-9000',
-    category: 'Mechanical',
-    quantity: 5,
-    unit: 'pcs',
-    minStock: 2,
-    location: 'Shelf A1',
-    date: '2024-03-20',
-    timestamp: BigInt(Date.now()),
-  },
-});
+
 
   console.log('Seeding complete.');
 }

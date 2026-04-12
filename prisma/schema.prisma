@@ -7,11 +7,19 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  ADMIN
+  PRODUCTION_SUPERVISOR
+  WAREHOUSE_OFFICER
+  LOGISTICS_OFFICER
+  MANAGEMENT
+}
+
 model User {
   id           String   @id @default(cuid())
   username     String   @unique
   name         String
-  role         String
+  role         UserRole
   passwordHash String
   active       Boolean  @default(true)
   createdAt    DateTime @default(now())
