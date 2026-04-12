@@ -1297,7 +1297,7 @@ async function seed() {
       {
         username: 'logistics',
         name: 'Logistics Officer',
-        role: '"LOGISTICS_OFFICER"',
+        role: 'LOGISTICS_OFFICER',
         passwordHash: hashPassword('logistics123'),
         active: true,
       },
