@@ -13,6 +13,9 @@
     "prisma:validate": "bash scripts/prisma.sh validate --schema prisma/schema.prisma",
     "lint": "tsc --noEmit"
   },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
+  },
   "dependencies": {
     "@prisma/client": "6.19.2",
     "bcryptjs": "^3.0.3",
@@ -28,6 +31,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22.14.0",
     "prisma": "6.19.2",
+    "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2"
   }
