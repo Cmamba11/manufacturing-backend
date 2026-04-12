@@ -1231,7 +1231,7 @@ async function seed() {
     data: {
       username: 'admin',
       name: 'System Administrator',
-      role: 'Administrator',
+      role: "ADMIN",
       passwordHash: hashPassword('admin123'),
       active: true,
     },
