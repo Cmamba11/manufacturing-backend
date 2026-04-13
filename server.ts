@@ -38,6 +38,21 @@ const PERMISSIONS = [
 ] as const;
 type Permission = (typeof PERMISSIONS)[number];
 const ROLE_PERMISSIONS: Record<string, Permission[]> = {
+  ADMIN: [
+    'view_all',
+    'edit_products',
+    'delete_products',
+    'edit_customers',
+    'delete_customers',
+    'void_transactions',
+    'manage_users',
+    'customer_asset_adjustment',
+    'record_issuance',
+    'warehouse_control',
+    'manage_materials',
+    'production_intake',
+    'dispatch_goods',
+  ],
   Administrator: [
     'view_all',
     'edit_products',
