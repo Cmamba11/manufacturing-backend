@@ -1202,9 +1202,7 @@ function isPrismaKnownError(error: unknown): error is { code: string; meta?: unk
   return isObject(error) && typeof error.code === 'string';
 }
 
-app.use('/api', (_req, res) => {
-  res.status(404).json({ error: 'API route not found' });
-});
+
 
   const issuance = await prisma.$transaction(async (tx: any) => {
     const part = await tx.sparePart.findUnique({ where: { id: partId } });
@@ -1327,6 +1325,10 @@ async function seed() {
 
   console.log('Users reset successfully');
 }
+
+app.use('/api', (_req, res) => {
+  res.status(404).json({ error: 'API route not found' });
+});
 
 app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
   if (isObject(error) && typeof error.status === 'number') {
