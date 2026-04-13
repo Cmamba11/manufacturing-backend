@@ -266,7 +266,7 @@ function assertAnyPermission(req: AuthenticatedRequest, permissions: readonly Pe
 
 function assertAdmin(req: AuthenticatedRequest): AuthTokenPayload {
   const authUser = requireAuthUser(req);
-  if (authUser.role !== 'Administrator') {
+  if (authUser.role !== 'ADMIN') {
     throw forbidden('Only administrators can manage users.');
   }
   return authUser;
