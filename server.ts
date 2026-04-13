@@ -1110,22 +1110,18 @@ app.post('/api/spare-parts', asyncHandler(async (req, res) => {
     timestamp
   } = req.body;
 
-  const sparePart = await prisma.sparePart.create({
-    data: {
-      name,
-      partNumber,
-      category,
-      quantity: parseInt(quantity),
-      unit,
-      minStock: parseInt(minStock),
-      location,
-      date,
-      timestamp: timestamp ? BigInt(timestamp) : null,
-    },
-  });
+  const { name, quantity, value, machineType, date, timestamp } = req.body;
 
-  res.status(201).json(sparePart);
-}));
+const sparePart = await prisma.sparePart.create({
+  data: {
+    name,
+    quantity: parseInt(quantity),
+    value: parseFloat(value),
+    machineType,
+    date,
+    timestamp: timestamp ? BigInt(timestamp) : null,
+  },
+});
 
 app.patch('/api/spare-parts/:id', asyncHandler(async (req, res) => {
   const authReq = req as AuthenticatedRequest;

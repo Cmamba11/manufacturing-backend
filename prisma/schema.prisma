@@ -113,14 +113,11 @@ model MaterialInboundRecord {
 model SparePart {
   id          String   @id @default(uuid())
   name        String
-  partNumber  String   @unique
-  category    String
   quantity    Int
-  unit        String
-  minStock    Int
-  location    String
-  date        String?  // Added
-  timestamp   BigInt?  // Added
+  value       Float    @default(0)
+  machineType String
+  date        String?
+  timestamp   BigInt?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
