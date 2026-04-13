@@ -15,7 +15,7 @@ const PORT = Number(process.env.API_PORT ?? 4000);
 const TOKEN_SECRET = process.env.AUTH_TOKEN_SECRET ?? 'change-me-in-production';
 const TOKEN_TTL_SECONDS = Number(process.env.AUTH_TOKEN_TTL_SECONDS ?? 60 * 60 * 12);
 const USER_ROLES = new Set([
-  'Administrator',
+  'ADMIN',
   'Production Supervisor',
   'Warehouse Officer',
   'Logistics Officer',
