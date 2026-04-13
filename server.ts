@@ -1198,12 +1198,13 @@ app.delete('/api/production-records/:id', asyncHandler(async (req, res) => {
   res.json({ success: true });
 }));
 
-app.use('/api', (_req, res) => {
-  res.status(404).json({ error: 'API route not found' });
-});
 function isPrismaKnownError(error: unknown): error is { code: string; meta?: unknown } {
   return isObject(error) && typeof error.code === 'string';
 }
+
+app.use('/api', (_req, res) => {
+  res.status(404).json({ error: 'API route not found' });
+});
 
   const issuance = await prisma.$transaction(async (tx: any) => {
     const part = await tx.sparePart.findUnique({ where: { id: partId } });
