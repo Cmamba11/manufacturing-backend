@@ -717,7 +717,7 @@ app.post('/api/auth/login', asyncHandler(async (req, res) => {
   });
 }));
 
-app.use('/api', requireAuth);
+
 
 app.get('/api/auth/me', asyncHandler(async (req, res) => {
   const authReq = req as AuthenticatedRequest;
