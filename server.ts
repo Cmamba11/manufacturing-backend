@@ -1098,19 +1098,7 @@ app.post('/api/spare-parts', asyncHandler(async (req, res) => {
   const authReq = req as AuthenticatedRequest;
   assertPermission(authReq, 'manage_materials');
 
-  const {
-    name,
-    partNumber,
-    category,
-    quantity,
-    unit,
-    minStock,
-    location,
-    date,
-    timestamp
-  } = req.body;
-
-  const { name, quantity, value, machineType, date, timestamp } = req.body;
+ const { name, quantity, value, machineType, date, timestamp } = req.body;
 
 const sparePart = await prisma.sparePart.create({
   data: {
@@ -1143,7 +1131,6 @@ app.get('/api/spare-issuances', asyncHandler(async (req, res) => {
   });
   res.json(issuances);
 }));
-
 app.post('/api/spare-issuances', asyncHandler(async (req, res) => {
   const authReq = req as AuthenticatedRequest;
   assertPermission(authReq, 'record_issuance');
@@ -1154,20 +1141,43 @@ app.post('/api/spare-issuances', asyncHandler(async (req, res) => {
     throw badRequest('partId is required.');
   }
 
-  // Add this before your startServer() function
- app.delete('/api/issuing-records/:id', asyncHandler(async (req, res) => {
+  const issuance = await prisma.$transaction(async (tx: any) => {
+    const part = await tx.sparePart.findUnique({ where: { id: partId } });
+    if (!part) {
+      throw badRequest('Spare part not found.');
+    }
+    if (part.quantity < quantity) {
+      throw badRequest(`Insufficient spare part stock. Available: ${part.quantity}, requested: ${quantity}`);
+    }
+    await tx.sparePart.update({
+      where: { id: partId },
+      data: { quantity: { decrement: quantity } },
+    });
+    return tx.sparePartIssuance.create({
+      data: {
+        id: parseString(body.id, 'id'),
+        partId,
+        quantity,
+        issuedTo: parseString(body.issuedTo, 'issuedTo'),
+        date: parseString(body.date, 'date'),
+        timestamp: parseTimestamp(body.timestamp),
+        notes: parseOptionalNullableString(body.notes, 'notes'),
+      },
+    });
+  });
+
+  res.status(201).json(issuance);
+}));
+
+app.delete('/api/issuing-records/:id', asyncHandler(async (req, res) => {
+  const authReq = req as AuthenticatedRequest;
   const { id } = req.params;
-
   const record = await prisma.issuingRecord.findUnique({ where: { id } });
-
   if (!record) {
     return res.status(404).json({ error: 'Record not found' });
   }
-
-  // safe reversal
   if (record.materialBags) {
     const bags = JSON.parse(record.materialBags);
-
     await prisma.materialStock.update({
       where: { id: 'master' },
       data: {
@@ -1179,26 +1189,18 @@ app.post('/api/spare-issuances', asyncHandler(async (req, res) => {
       }
     });
   }
-
   await prisma.issuingRecord.delete({ where: { id } });
+  return res.json({ success: true });
+}));
 
-  return res.json({ success: true }); // ALWAYS return JSON
- }));
-
-app.delete('/api/production-records/:id', async (req, res) => {
-  try {
-    await prisma.productionRecord.delete({ where: { id: req.params.id } });
-    res.json({ success: true });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to delete' });
-  }
-});
-
+app.delete('/api/production-records/:id', asyncHandler(async (req, res) => {
+  await prisma.productionRecord.delete({ where: { id: req.params.id } });
+  res.json({ success: true });
+}));
 
 app.use('/api', (_req, res) => {
   res.status(404).json({ error: 'API route not found' });
 });
-
 function isPrismaKnownError(error: unknown): error is { code: string; meta?: unknown } {
   return isObject(error) && typeof error.code === 'string';
 }
@@ -1294,28 +1296,28 @@ async function seed() {
       {
         username: 'production',
         name: 'Production Supervisor',
-        role: 'PRODUCTION_SUPERVISOR',
+        role: 'Production Supervisor',
         passwordHash: hashPassword('production123'),
         active: true,
       },
       {
         username: 'warehouse',
         name: 'Warehouse Officer',
-        role: 'WAREHOUSE_OFFICER',
+        role: 'Warehouse Officer',
         passwordHash: hashPassword('warehouse123'),
         active: true,
       },
       {
         username: 'logistics',
         name: 'Logistics Officer',
-        role: 'LOGISTICS_OFFICER',
+        role: 'Logistics Officer',
         passwordHash: hashPassword('logistics123'),
         active: true,
       },
       {
         username: 'management',
         name: 'Management',
-        role: 'MANAGEMENT',
+        role: 'Management',
         passwordHash: hashPassword('management123'),
         active: true,
       },
